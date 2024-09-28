@@ -14,6 +14,12 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import LiveCameraFeed from "./LiveCameraFeed";
 
+const ScreenEnum = {
+  IMAGE_UPLOAD: "IMAGE_UPLOAD",
+  LIVE_CAPTURE: "LIVE_CAPTURE",
+  // Add more screens as needed
+};
+
 const ImageUpload = ({ setScreen }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
@@ -36,7 +42,7 @@ const ImageUpload = ({ setScreen }) => {
   const handleUpload = () => {
     if (selectedImage) {
       console.log("Uploading image:", selectedImage);
-      setScreen(false); // Switch to live capture screen after upload
+      setScreen(ScreenEnum.LIVE_CAPTURE); // Switch to live capture screen after upload
     } else {
       setError("Please select an image before uploading.");
     }
@@ -81,7 +87,7 @@ const ImageUpload = ({ setScreen }) => {
 };
 
 export function DialogButton() {
-  const [screen, setScreen] = useState(true);
+  const [screen, setScreen] = useState(ScreenEnum.IMAGE_UPLOAD);
 
   return (
     <Dialog>
@@ -89,31 +95,33 @@ export function DialogButton() {
         <Button variant="outline">Upload</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
-        {screen ? (
-          <>
-            <DialogHeader>
-              <DialogTitle>Upload your ID</DialogTitle>
-              <DialogDescription>
-                Please upload a clear photo of your government ID.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <ImageUpload setScreen={setScreen} />
-            </DialogFooter>
-          </>
-        ) : (
-          <>
-            <DialogHeader>
-              <DialogTitle>Live Image Capture</DialogTitle>
-              <DialogDescription>
-                Matching your live image to the ID you uploaded.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <LiveCameraFeed setScreen={setScreen} />
-            </DialogFooter>
-          </>
-        )}
+        {
+          screen === ScreenEnum.IMAGE_UPLOAD ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>Upload your ID</DialogTitle>
+                <DialogDescription>
+                  Please upload a clear photo of your government ID.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <ImageUpload setScreen={setScreen} />
+              </DialogFooter>
+            </>
+          ) : screen === ScreenEnum.LIVE_CAPTURE ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>Live Image Capture</DialogTitle>
+                <DialogDescription>
+                  Matching your live image to the ID you uploaded.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <LiveCameraFeed setScreen={setScreen} />
+              </DialogFooter>
+            </>
+          ) : null /* Add more screens as needed */
+        }
       </DialogContent>
     </Dialog>
   );

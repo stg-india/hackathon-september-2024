@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useCallback } from "react";
+import { Button } from "@/components/ui/button"; // Use shadcn's Button
 
 const LiveCameraFeed: React.FC = ({ setScreen }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -27,36 +28,27 @@ const LiveCameraFeed: React.FC = ({ setScreen }) => {
       tracks.forEach((track) => track.stop());
       videoRef.current.srcObject = null;
       setIsStreamActive(false);
-      setTimeout(() => setScreen(true), 10000);
     }
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center  bg-gray-100">
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          className="w-full max-w-md border-2 border-gray-300 rounded-lg"
-        />
-        <div className="mt-4">
-          {!isStreamActive ? (
-            <button
-              onClick={startCamera}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-            >
-              Start Camera
-            </button>
-          ) : (
-            <button
-              onClick={stopCamera}
-              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-            >
-              Stop Camera
-            </button>
-          )}
-        </div>
+    <div className="flex flex-col items-center justify-center">
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        className="w-full max-w-md border rounded-lg shadow-sm" // Removed extra border for embedded look
+      />
+      <div className="mt-4">
+        {!isStreamActive ? (
+          <Button onClick={startCamera} variant="default">
+            Start Camera
+          </Button>
+        ) : (
+          <Button onClick={stopCamera} variant="destructive">
+            Stop Camera
+          </Button>
+        )}
       </div>
     </div>
   );
