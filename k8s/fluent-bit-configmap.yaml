@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: fluent-bit-config
-  namespace: kube-logging
+  namespace: default
   labels:
     app: fluent-bit
 data:
@@ -15,7 +15,8 @@ data:
 
     [INPUT]
         Name              tail
-        Path              /var/log/containers/*.log
+        Path              /var/log/pods/*/*/*.log
+        Exclude_Path      /var/log/pods/*/*fluent-bit*.log, /var/log/pods/*/*coredns*.log, /var/log/pods/*/*kube-controller-manager*.log, /var/log/pods/*/*storage-provisioner*.log, /var/log/pods/*/*kube-scheduler*.log, /var/log/pods/*/*kube-proxy*.log, /var/log/pods/*/*kube-apiserver*.log, /var/log/pods/*/*etcd*.log  
         Parser            docker
         Tag               kube.*
         Refresh_Interval  5
@@ -32,13 +33,19 @@ data:
         K8S-Logging.Exclude On
 
     [OUTPUT]
-        Name   stdout
-        Match  *
-        Format json
+        Name          influxdb
+        Match         *
+        Host          influxdb
+        Port          8086
+        bucket        SegFault
+        org           STGI
+        sequence_tag  _seq
+        http_token    7ETF8X3ZThuQrarZxNeHIsa4QmqjEjmgjJzDQY9PnqegvnM884YbpzDOUolunsn29LxX8FRW1sQPb822-25KrA==
+
   parsers.conf: |
     [PARSER]
-        Name        docker
-        Format      json
-        Time_Key    time
-        Time_Format %Y-%m-%dT%H:%M:%S.%L
-        Time_Keep   On
+        Name              docker
+        Format            json
+        Time_Key          time
+        Time_Format       %Y-%m-%dT%H:%M:%S.%L
+        Time_Keep         On
