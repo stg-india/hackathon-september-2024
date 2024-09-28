@@ -1,7 +1,7 @@
 package com.stgi.segfault.Controller;
 
-import com.influxdb.query.FluxTable;
 import com.stgi.segfault.Service.InfluxDBService;
+import com.stgi.segfault.dto.InfluxQueryResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,7 +15,7 @@ public class InfluxDBController {
     private InfluxDBService influxDBService;
 
     @GetMapping("/query")
-    public List<FluxTable> query(@RequestParam String query) {
+    public List<InfluxQueryResult> query(@RequestParam String query) {
         return influxDBService.queryInfluxDB(query);
     }
 }
