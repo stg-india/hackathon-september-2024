@@ -12,7 +12,7 @@ export function NavBar() {
         </div>
       </Link>
       <div className=" gap-8 flex flex-row justify-center items-center">
-        <Link href={"/work"}>
+        <Link href={"/upload"}>
           <Button variant="outline">Upload</Button>
         </Link>
         <Button variant="outline">Dummy</Button>

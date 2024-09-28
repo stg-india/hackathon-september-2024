@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import axios from "axios"
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,10 +22,20 @@ const ScreenEnum = {
 };
 
 const ImageUpload = ({ setScreen }) => {
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
   const [error, setError] = useState("");
   const fileInputRef = useRef(null);
+
+  const [img1, setImg1] = useState(null);
+  const [img2, setImg2] = useState(null);
+
+
+  useEffect(()=>{
+    if(img1 && img2){
+      setSelectedImage(true)
+    }
+  },[])
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
@@ -42,9 +53,40 @@ const ImageUpload = ({ setScreen }) => {
   const handleUpload = () => {
     if (selectedImage) {
       console.log("Uploading image:", selectedImage);
+
+      console.log("File : ", selectedImage.name)
+
+      // verifyImage(selectedImage)
+
+
+
+
       setScreen(ScreenEnum.LIVE_CAPTURE); // Switch to live capture screen after upload
     } else {
       setError("Please select an image before uploading.");
+    }
+  };
+
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Create form-data
+    const formData = new FormData();
+    formData.append('img1', img1);
+    formData.append('img2', img2);
+
+    try {
+      // Post request to your Flask backend
+      const response = await axios.post('http://127.0.0.1:5000/compare', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      console.log('Response:', response.data);
+    } catch (error) {
+      console.error('Error uploading images:', error);
     }
   };
 
@@ -71,16 +113,19 @@ const ImageUpload = ({ setScreen }) => {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      <div className="flex justify-between">
-        <Button
-          variant="secondary"
-          onClick={() => fileInputRef.current.click()}
-        >
-          Select Image
-        </Button>
-        <Button onClick={handleUpload} disabled={!selectedImage}>
+      <div className="flex ">
+        <form onSubmit={handleSubmit}>
+        <div className = "flex flex-col">
+          <label>Upload Image 1:</label>
+          <input type="file" onChange={(e)=> setImg1(e.target.files[0])} />
+       
+          <label>Upload a document:</label>
+          <input type="file" onChange={ (e)=>setImg2(e.target.files[0])} />
+        </div>
+        <Button onClick={handleSubmit}>
           Upload Image
         </Button>
+      </form>
       </div>
     </>
   );

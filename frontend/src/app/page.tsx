@@ -21,7 +21,7 @@ export default function Home() {
             Please complete your KYC process now for a seamless experience.
           </div>
           <div className=" items-center justify-center flex my-10">
-            <Link href={"/work"}>
+            <Link href={"/upload"}>
               <RainbowButton>Get Started</RainbowButton>
             </Link>
           </div>
