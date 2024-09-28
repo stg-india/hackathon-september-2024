@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: fluent-bit
-  namespace: kube-logging
+  namespace: default
   labels:
     app: fluent-bit
 spec:

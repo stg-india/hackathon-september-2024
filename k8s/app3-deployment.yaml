@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logger-hackathon
+  namespace: default  # Change to your desired namespace
+  labels:
+    app: logger-hackathon
+spec:
+  replicas: 1  # Change the number of replicas as needed
+  selector:
+    matchLabels:
+      app: logger-hackathon
+  template:
+    metadata:
+      labels:
+        app: logger-hackathon
+    spec:
+      containers:
+        - name: logger-hackathon
+          image: tjain598/logger-hackathon:latest

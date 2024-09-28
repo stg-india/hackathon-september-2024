@@ -1,0 +1,17 @@
+version: '3.8'  # Specify the Docker Compose file format version
+
+services:
+  influxdb:
+    image: influxdb:latest  # Use the latest InfluxDB image
+    container_name: influxdb  # Name the container
+    ports:
+      - "8086:8086"  # Expose port 8086
+    environment:
+      INFLUXDB_DB: your_database_name  # Replace with your database name
+      INFLUXDB_USER: your_username  # Replace with your username
+      INFLUXDB_PASSWORD: your_password  # Replace with your password
+    volumes:
+      - influxdb_data:/var/lib/influxdb  # Persist data between restarts
+
+volumes:
+  influxdb_data:  # Define a named volume for persistent storage
