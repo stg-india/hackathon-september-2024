@@ -19,7 +19,7 @@ spec:
         - containerPort: 8000
         env:
         - name: POSTGRES_HOST
-          value: postgres
+          value: postgres-service
         - name: POSTGRES_DB
           value: abc_db
         - name: POSTGRES_USER
