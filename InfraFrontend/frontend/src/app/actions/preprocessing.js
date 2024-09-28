@@ -1,189 +1,101 @@
-// preprocessing.js
+const fs = require('fs');
 
-// Mapping of log levels to status codes
+const logData = `
+[09/28 12:40:25] [ info] [fluent bit] version=3.1.9, commit=431fa79ae2, pid=1
+[09/28 12:41:10] [ error] [parser] invalid number of parameters in decoder
+[09/28 12:41:15] [ info] [storage] ver=1.5.2, type=memory, sync=normal, checksum=off, max_chunks_up=128
+[09/28 12:42:00] [ debug] [cmetrics] version=0.9.6
+[09/28 12:42:25] [ info] [ctraces ] version=0.5.6
+[09/28 12:43:05] [ warn] [kubernetes:kubernetes.0] missing token in request
+[09/28 12:43:30] [ info] [input:tail:tail.0] initializing
+[09/28 12:44:00] [ error] [output:stdout:stdout.0] worker #0 failed to start
+[09/28 12:45:10] [ info] [input:tail:tail.0] storage_strategy='memory' (memory only)
+[09/28 12:45:50] [ debug] [filter:kubernetes:kubernetes.0] testing connectivity with API server...
+[09/28 12:46:30] [ info] [filter:kubernetes:kubernetes.0] connectivity OK
+[09/28 12:47:20] [ error] [input:tail:tail.1] unable to read file
+[09/28 12:48:05] [ warn] [output:stdout:stdout.1] log buffer overflow
+[09/28 12:49:00] [ info] [filter:kubernetes:kubernetes.0] token updated
+[09/28 12:49:40] [ debug] [cmetrics] metrics collection started
+[09/28 12:50:15] [ info] [sp] stream processor started
+[09/28 12:51:10] [ error] [parser] parsing failed due to missing fields
+[09/28 12:52:00] [ warn] [filter:kubernetes:kubernetes.0] high latency detected
+[09/28 12:53:00] [ info] [output:stdout:stdout.0] worker #1 started
+[09/28 12:54:15] [ error] [input:tail:tail.0] file not found
+[09/28 12:55:25] [ info] [storage] cache cleared
+[09/28 12:56:30] [ debug] [ctraces ] trace logging enabled
+[09/28 12:57:40] [ warn] [output:stdout:stdout.1] retrying due to network error
+[09/28 12:58:05] [ info] [input:tail:tail.2] monitoring new file
+[09/28 12:59:10] [ error] [filter:kubernetes:kubernetes.1] authentication failed
+[09/28 13:00:00] [ info] [storage] new configuration loaded
+[09/28 13:01:20] [ debug] [cmetrics] metrics collection stopped
+[09/28 13:02:15] [ warn] [input:tail:tail.1] rate limit exceeded
+[09/28 13:03:00] [ info] [output:stdout:stdout.0] worker #2 started
+[09/28 13:04:30] [ error] [parser] unexpected token encountered
+[09/28 13:05:20] [ info] [filter:kubernetes:kubernetes.0] local POD info OK
+[09/28 13:06:05] [ debug] [ctraces ] trace session ended
+[09/28 13:07:10] [ warn] [sp] stream processor stalled
+[09/28 13:08:15] [ info] [input:tail:tail.3] cleanup complete
+[09/28 13:09:25] [ error] [output:stdout:stdout.1] unexpected output format
+[09/28 13:10:00] [ info] [filter:kubernetes:kubernetes.1] metrics updated
+[09/28 13:11:30] [ debug] [cmetrics] version 0.10.0 released
+[09/28 13:12:00] [ warn] [parser] data truncation warning
+[09/28 13:13:45] [ info] [input:tail:tail.0] restart successful
+[09/28 13:14:25] [ error] [filter:kubernetes:kubernetes.0] connection reset by peer
+[09/28 13:15:15] [ info] [storage] cleanup completed
+[09/28 13:16:05] [ debug] [ctraces ] configuration reloaded
+[09/28 13:17:00] [ warn] [output:stdout:stdout.0] slow consumer detected
+[09/28 13:18:20] [ info] [filter:kubernetes:kubernetes.0] deployment status OK
+[09/28 13:19:15] [ error] [parser] failed to parse log entry
+[09/28 13:20:30] [ info] [input:tail:tail.2] monitoring stopped
+[09/28 13:21:05] [ debug] [cmetrics] metrics cleared
+[09/28 13:22:00] [ warn] [sp] stream processor restarted
+[09/28 13:23:10] [ info] [output:stdout:stdout.1] worker #3 started
+[09/28 13:24:15] [ error] [input:tail:tail.1] timeout occurred
+[09/28 13:25:25] [ info] [storage] memory usage report generated
+[09/28 13:26:00] [ debug] [ctraces ] trace logging disabled
+[09/28 13:27:30] [ warn] [filter:kubernetes:kubernetes.1] node unreachable
+[09/28 13:28:05] [ info] [input:tail:tail.0] reading file...
+[09/28 13:29:15] [ error] [output:stdout:stdout.0] write failed
+[09/28 13:30:00] [ info] [sp] stream processor shutting down
+[09/28 13:31:05] [ debug] [cmetrics] metrics resampling started
+[09/28 13:32:20] [ warn] [parser] log format changed
+[09/28 13:33:15] [ info] [filter:kubernetes:kubernetes.0] health check passed
+[09/28 13:34:00] [ error] [input:tail:tail.2] invalid file descriptor
+[09/28 13:35:25] [ info] [output:stdout:stdout.1] operation successful
+`;
+
 const logLevelToStatusCode = {
-    "info": 200,
-    "warn": 300,
-    "error": 500,
-    "debug": 100, // You can adjust this value as needed
-  };
-  
-  // Function to extract (x, y) points
-  function extractPoints(logs) {
-    return logs.map(log => {
-      const timestamp = log.time; // x coordinate
-      let statusCode = null; // y coordinate
-  
-      // Extract log level from log message
-      const logLevelMatch = log.log.match(/(info|warn|error|debug)/);
-      if (logLevelMatch) {
-        const logLevel = logLevelMatch[1]; // Extract the log level
-        statusCode = logLevelToStatusCode[logLevel] || null; // Map to status code
-      }
-  
-      return {
-        x: timestamp,
-        y: statusCode // Use mapped status code
-      };
-    }).filter(point => point.y !== null); // Filter out points without a status code
-  }
-  
-  // Function to preprocess the logs
-  function preprocessLogs(inputLogs) {
-    const points = extractPoints(inputLogs);
-    return JSON.stringify(points, null, 2); // Return points as JSON
-  }
-  
-  // Sample input logs
-  const logs = [
-    {
-      "log": "2024-09-28T12:34:56.789Z - info: Application started on port 3000\n",
-      "stream": "stdout",
-      "time": "2024-09-28T12:34:56.789Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:35:15.123Z - error: Database connection failed\n",
-      "stream": "stderr",
-      "time": "2024-09-28T12:35:15.123Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:35:30.234Z - info: Health check passed\n",
-      "stream": "stdout",
-      "time": "2024-09-28T12:35:30.234Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:36:45.567Z - warn: API request failed with status 500\n",
-      "stream": "stderr",
-      "time": "2024-09-28T12:36:45.567Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:37:20.789Z - info: User login successful, userId: 12345\n",
-      "stream": "stdout",
-      "time": "2024-09-28T12:37:20.789Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:38:10.111Z - debug: Cache hit for user profile\n",
-      "stream": "stdout",
-      "time": "2024-09-28T12:38:10.111Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:39:05.222Z - error: Failed to send email notification\n",
-      "stream": "stderr",
-      "time": "2024-09-28T12:39:05.222Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:40:15.333Z - warn: Deprecated API endpoint accessed\n",
-      "stream": "stderr",
-      "time": "2024-09-28T12:40:15.333Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:41:25.444Z - info: Data processing completed successfully\n",
-      "stream": "stdout",
-      "time": "2024-09-28T12:41:25.444Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:42:35.555Z - error: Unexpected token in JSON response\n",
-      "stream": "stderr",
-      "time": "2024-09-28T12:42:35.555Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:43:45.666Z - info: User logout successful, userId: 12345\n",
-      "stream": "stdout",
-      "time": "2024-09-28T12:43:45.666Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:44:55.777Z - debug: User preferences retrieved\n",
-      "stream": "stdout",
-      "time": "2024-09-28T12:44:55.777Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:45:05.888Z - warn: Rate limit exceeded for userId: 12345\n",
-      "stream": "stderr",
-      "time": "2024-09-28T12:45:05.888Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:46:15.999Z - info: Scheduled job completed successfully\n",
-      "stream": "stdout",
-      "time": "2024-09-28T12:46:15.999Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:47:26.000Z - error: Invalid input data received\n",
-      "stream": "stderr",
-      "time": "2024-09-28T12:47:26.000Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:48:36.111Z - debug: User activity logged\n",
-      "stream": "stdout",
-      "time": "2024-09-28T12:48:36.111Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:49:46.222Z - info: Application shutting down gracefully\n",
-      "stream": "stdout",
-      "time": "2024-09-28T12:49:46.222Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:50:56.333Z - error: Connection to external service failed\n",
-      "stream": "stderr",
-      "time": "2024-09-28T12:50:56.333Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:51:06.444Z - warn: Disk space running low\n",
-      "stream": "stderr",
-      "time": "2024-09-28T12:51:06.444Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:52:16.555Z - info: User registered successfully, userId: 67890\n",
-      "stream": "stdout",
-      "time": "2024-09-28T12:52:16.555Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:53:26.666Z - debug: Token refreshed for userId: 67890\n",
-      "stream": "stdout",
-      "time": "2024-09-28T12:53:26.666Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:54:36.777Z - error: Email service not responding\n",
-      "stream": "stderr",
-      "time": "2024-09-28T12:54:36.777Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:55:46.888Z - warn: Configuration file missing\n",
-      "stream": "stderr",
-      "time": "2024-09-28T12:55:46.888Z",
-      "kubernetes": {}
-    },
-    {
-      "log": "2024-09-28T12:56:56.999Z - info: Backup completed successfully\n",
-      "stream": "stdout",
-      "time": "2024-09-28T12:56:56.999Z",
-      "kubernetes": {}
-    }
-  ];
-  
-  
-  // Call the function and log the results
-  const result = preprocessLogs(logs);
-  console.log(result);
-  
+    'info': 200,
+    'error': 500,
+    'warn': 400,
+    'debug': 300,
+};
+
+const extractPoints = (logs) => {
+    const lines = logs.trim().split('\n');
+    const points = [];
+
+    lines.forEach(line => {
+        const timestampMatch = line.match(/\[(.*?)\]/);
+        const levelMatch = line.match(/\[\s*(\w+)\s*\]/); // Updated regex to capture space before and after log level
+        
+        if (timestampMatch && levelMatch) {
+            const timestamp = timestampMatch[1];
+            const logLevel = levelMatch[1].trim();
+            const statusCode = logLevelToStatusCode[logLevel.toLowerCase()] || null;
+
+            if (statusCode) {
+                // Convert the timestamp to epoch time
+                const epochTime = Math.floor(new Date(timestamp).getTime() / 1000);
+                
+                // Push an array with original date-time, epoch, and status code
+                points.push([timestamp, epochTime, statusCode]);
+            }
+        }
+    });
+
+    return points;
+};
+
+const points = extractPoints(logData);
+console.log(JSON.stringify(points, null, 2));
