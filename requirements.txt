@@ -1,0 +1,4 @@
+gradio
+wheel
+face_recognition
+numpy
