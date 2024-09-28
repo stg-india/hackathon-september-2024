@@ -4,7 +4,7 @@ import { Chart, registerables } from "chart.js";
 
 Chart.register(...registerables);
 
-const LogChart = () => {
+const ErrorChart = () => {
     const canvasRef = useRef(null);
     const [chartInstance, setChartInstance] = useState(null);
 
@@ -19,16 +19,17 @@ const LogChart = () => {
     // Effect to create the chart on mount
     useEffect(() => {
         const ctx = canvasRef.current.getContext('2d');
-
+    
         const myChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Status Codes',
+                    label: 'Error Codes',
                     data: [],
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    // Change to light reddish color for error indication
+                    borderColor: 'rgba(255, 99, 132, 1)', // Light reddish color for the line
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)', // Light reddish background
                     borderWidth: 2,
                     fill: true,
                 }],
@@ -51,7 +52,7 @@ const LogChart = () => {
                     y: {
                         title: {
                             display: true,
-                            text: 'Status Codes',
+                            text: 'Error Codes',
                         },
                         beginAtZero: true,
                         suggestedMin: 100,
@@ -72,14 +73,15 @@ const LogChart = () => {
                 },
             },
         });
-
+    
         setChartInstance(myChart);
-
+    
         // Cleanup the chart when component unmounts
         return () => {
             myChart.destroy();
         };
     }, []);
+    
 
     // Effect to fetch and update log data
     useEffect(() => {
@@ -113,4 +115,4 @@ const LogChart = () => {
     );
 };
 
-export default LogChart;
+export default ErrorChart;
