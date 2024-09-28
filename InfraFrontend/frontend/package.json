@@ -11,6 +11,8 @@
   "dependencies": {
     "@nextui-org/react": "^2.4.8",
     "axios": "^1.7.7",
+    "chart.js": "^4.4.4",
+    "chartjs-plugin-zoom": "^2.0.1",
     "next": "14.2.13",
     "react": "^18",
     "react-dom": "^18"
