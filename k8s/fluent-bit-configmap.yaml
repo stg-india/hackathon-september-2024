@@ -32,6 +32,45 @@ data:
         K8S-Logging.Parser  On
         K8S-Logging.Exclude On
 
+    [FILTER]
+        Name                geoip
+        Match               kube.*
+        Key                 ip_address               
+        Add_Field           true                     
+        Include             city_name,country_code
+
+    [FILTER]
+        Name                record_transformer
+        Match               kube.*
+        Record              new_time ${time}
+        Time_Format         "%Y-%m-%d %H:%M:%S"
+
+    [FILTER]
+        Name                grep
+        Match               kube.*
+        Regex               log  "ERROR|WARN|INFO"
+
+    [FILTER]
+        Name                lua
+        Match               kube.*
+        script              extract_fields.lua  
+        call                extract_fields
+
+    [FILTER]
+        Name              grep
+        Match             kube.*
+        Regex             kubernetes.pod_name nginx.*
+
+    [FILTER]
+        Name              grep
+        Match             kube.*
+        Regex             kubernetes.namespace_name production.*
+
+    [FILTER]
+        Name              grep
+        Match             kube.*
+        Regex             kubernetes.labels.app webapp.*
+
     [OUTPUT]
         Name          influxdb
         Match         *
@@ -49,3 +88,21 @@ data:
         Time_Key          time
         Time_Format       %Y-%m-%dT%H:%M:%S.%L
         Time_Keep         On
+
+  extract_fields.lua: |
+    function extract_fields(tag, timestamp, record)
+        -- Custom logic to extract additional fields from the log
+        return 1, timestamp, record
+        end
+
+        -- Calculate CPU utilization as a percentage
+        if total_time > 0 then
+            cpu_utilization = (active_time / total_time) * 100
+        else
+            cpu_utilization = 0
+        end
+
+        -- Add the CPU utilization to the log record
+        record["cpu_utilization"] = cpu_utilization
+        return 1, timestamp, record
+    end

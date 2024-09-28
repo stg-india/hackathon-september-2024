@@ -9,21 +9,37 @@ if [ ! -x "$0" ]; then
     exit 0
 fi
 
-# If executable, proceed with the rest of the script
-echo "Applying app-1-deployment.yaml"
-kubectl apply -f app-1-deployment.yaml
+# Function to apply Kubernetes YAML and check pod status
+apply_and_check() {
+    local yaml_file=$1
+    echo "Applying ${yaml_file}"
+    kubectl apply -f "${yaml_file}"
 
-# Optionally check pod status
-echo "Checking pod status..."
-kubectl get pods
+    # Check pod status
+    echo "Checking pod status for ${yaml_file}..."
+    kubectl get pods
+}
 
-# If executable, proceed with the rest of the script
-echo "Applying app-2-deployment.yaml"
-kubectl apply -f app-2-deployment.yaml
+# Function to fetch logs for specific pods
+fetch_logs() {
+    local app_name=$1
+    echo "Fetching logs for ${app_name} pod..."
+    kubectl logs -l app="${app_name}"
+}
 
-# Optionally check pod status
-echo "Checking pod status..."
-kubectl get pods
+# Function to expose a service (if needed)
+expose_service() {
+    local service_name=$1
+    local port=$2
+    echo "Exposing ${service_name} service on port ${port}..."
+    kubectl expose deployment "${service_name}" --type=LoadBalancer --port="${port}"
+}
 
-# Add other kubectl apply commands as needed
-# kubectl apply -f another-deployment.yaml
+# Apply logger-hackathon (Spring Boot app) deployment
+kubectl apply -f logger-hackathon-deployment.yaml
+
+# Spring boot
+kubectl apply -f spring-boot-deployment.yaml
+kubectl apply -f spring-boot-service.yaml
+
+
