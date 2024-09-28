@@ -5,6 +5,7 @@ Shreya Pahuja
 Bhoomi
 Krittika Jari
 Muskan Khar
+Dharya Jasuja
 Problem Statement:
 Automated Resume Screening and Microsoft Form Submission with RPA
 
