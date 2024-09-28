@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: django-app
-        image: app-1-image 
+        image: jksingh13/stgi-app1
         ports:
         - containerPort: 8000
         env:

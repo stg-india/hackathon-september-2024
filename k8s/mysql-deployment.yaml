@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mysql
+  name: mysql-dev
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mysql
+      app: mysql-dev
   template:
     metadata:
       labels:
-        app: mysql
+        app: mysql-dev
     spec:
       containers:
       - name: mysql
@@ -26,12 +26,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: mysql-service
+  name: mysql-dev
 spec:
-  type: ClusterIP
-  selector:
-    app: mysql
   ports:
-    - protocol: TCP
-      port: 3306
+    - port: 3306
       targetPort: 3306
+  selector:
+    app: mysql-dev
