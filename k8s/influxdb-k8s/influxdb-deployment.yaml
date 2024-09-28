@@ -23,7 +23,7 @@ spec:
             - name: INFLUXDB_ADMIN_USER
               value: "admin"
             - name: INFLUXDB_ADMIN_PASSWORD
-              value: "password"  # Change to a secure password
+              value: "password"
           volumeMounts:
             - name: influxdb-storage
               mountPath: /var/lib/influxdb
