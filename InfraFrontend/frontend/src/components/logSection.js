@@ -80,6 +80,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Log from "./Log"; // Adjust the import path as necessary
+import { styles } from "./styles";
 
 export default function LogSection() {
   const [logs, setLogs] = useState([]);
@@ -111,8 +112,10 @@ export default function LogSection() {
 
   return (
     <div className="log-section flex flex-col  m-5 p-5 shadow-xl my-10  bg-[#16141A] border-2 border-white rounded-lg ">
-      <h1 className="text-center text-2xl font-bold mb-10 text-white ">Log Section</h1>
-      <div className="overflow-y-auto h-[250px] bg-white shadow-md bg-[#16141A] ">
+      <h1 className={`${styles.heroHeadText} text-white flex justify-center mb-10`}>
+        Log<span className='text-[#915EFF]'>Section</span>
+      </h1>
+      <div className="overflow-y-auto h-[250px]  shadow-md bg-[#16141A] ">
         {logs.length === 0 ? (
           <p className="text-center text-gray-500">No logs available.</p>
         ) : (
