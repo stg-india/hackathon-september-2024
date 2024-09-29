@@ -24,3 +24,7 @@ Team can chose ONE of the topic from below and work on that.
 - [Scenario - 3: Resume Screener](ResumeScreening.md)
   
 - [Scenario - 4: KYC Platform](KYCPlatform.md)
+
+
+## Solution 
+- PPT and Video Demo's Link - https://drive.google.com/drive/folders/1GU4CjGjhzt9KPTRHkVBAQ6NLmAGgSnOD
