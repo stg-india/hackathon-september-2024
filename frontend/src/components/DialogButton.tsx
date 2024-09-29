@@ -124,8 +124,8 @@ const FaceCapture = ({ setScreen }) => {
   
     try {
       const formData = new FormData();
-      formData.append('img1', image2, 'live_photo.jpg'); // Live photo
-      formData.append('img2', img1, 'document_photo.jpg'); // Document photo
+      formData.append('img1', img1, 'live_photo.jpg'); // Live photo
+      formData.append('img2', image2, 'document_photo.jpg'); // Document photo
 
       const response = await axios.post(
         "http://127.0.0.1:5000/compare",
@@ -200,7 +200,8 @@ const FaceCapture = ({ setScreen }) => {
         <Alert variant="success" className="mb-4">
           <AlertDescription>
             Match: {result.verified ? "Yes" : "No"}<br/>
-            Similarity: {result.distance}
+            Distance: {result.distance}<br/>
+            Lower the distance, better the match.
           </AlertDescription>
         </Alert>
       )}
