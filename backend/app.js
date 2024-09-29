@@ -128,7 +128,7 @@ app.get("/", function (req, res) {
 // });
 
 app.post("/fetch/logs", async (req, res) => {
-  const { startDate, endDate, level } = req.body;
+  const { startDate, endDate, level, searchKeyword } = req.body;
 
   // Validate the date range
   if (!startDate || !endDate) {
@@ -136,7 +136,7 @@ app.post("/fetch/logs", async (req, res) => {
   }
 
   try {
-      // Start building the query
+      // Construct the query
       let query = `
           from(bucket: "${influxDBBucket}")
           |> range(start: ${startDate}, stop: ${endDate})
@@ -148,6 +148,7 @@ app.post("/fetch/logs", async (req, res) => {
           query += ` |> filter(fn: (r) => r.Level == "${level}")`;
       }
 
+      // Execute the query
       const result = await influxDB.getQueryApi(influxDBOrg).queryRows(query, {
           next: (row, tableMeta) => {
               const logEntry = tableMeta.get(row, '_value');
@@ -158,8 +159,11 @@ app.post("/fetch/logs", async (req, res) => {
                   if (err) {
                       console.error('Error decompressing log data:', err);
                   } else {
-                      // Send decompressed log to the response
-                      res.write(buffer.toString() + "\n");
+                      const logString = buffer.toString();
+                      // Check if logString contains the searchKeyword
+                      if (!searchKeyword || logString.includes(searchKeyword)) {
+                          res.write(logString + "\n"); // Send each log entry
+                      }
                   }
               });
           },
@@ -178,43 +182,52 @@ app.post("/fetch/logs", async (req, res) => {
   }
 });
 
+
 app.post("/log-level-count", async (req, res) => {
-  const { startDate, endDate } = req.body;
-  console.log(req.body);
+  const { startDate, endDate, searchKeyword } = req.body;
+
   // Validate the date range
   if (!startDate || !endDate) {
       return res.status(400).json({ error: "Start date and end date are required." });
   }
 
   try {
-      // Query InfluxDB for compressed logs within the date range
+      // Query InfluxDB for logs within the date range
       const query = `
           from(bucket: "${influxDBBucket}")
           |> range(start: ${startDate}, stop: ${endDate})
           |> filter(fn: (r) => r._measurement == "compressed_logs")
-          |> map(fn: (r) => ({ r with log: string(v: r._value) }))
-          |> filter(fn: (r) => r.log !="") // Ensure we only process non-empty logs
       `;
       
-      // Create a map to count levels
-      const levelCounts = {
-          "ERROR": 0,
-          "WARNING": 0,
-          "CRITICAL": 0,
-          "INFO": 0,
-          "DEBUG": 0
+      const counts = {
+          ERROR: 0,
+          WARNING: 0,
+          CRITICAL: 0,
+          INFO: 0,
+          DEBUG: 0,
       };
 
-      // Process the result
-      await influxDB.getQueryApi(influxDBOrg).queryRows(query, {
+      const result = await influxDB.getQueryApi(influxDBOrg).queryRows(query, {
           next: (row, tableMeta) => {
-              const log = tableMeta.get(row, 'log');
+              const logEntry = tableMeta.get(row, '_value');
+              const compressedData = Buffer.from(logEntry, 'base64');
 
-              // Extract level from the log message
-              const levelMatch = log.match(/"Level": "(.*?)"/);
-              if (levelMatch && levelCounts.hasOwnProperty(levelMatch[1])) {
-                  levelCounts[levelMatch[1]] += 1;
-              }
+              // Decompress the log entry
+              zlib.gunzip(compressedData, (err, buffer) => {
+                  if (err) {
+                      console.error('Error decompressing log data:', err);
+                  } else {
+                      const logString = buffer.toString();
+                      // If searchKeyword is provided, filter logs
+                      if (!searchKeyword || logString.includes(searchKeyword)) {
+                          // Count log levels
+                          const logLevel = JSON.parse(logString).Level; // Assuming the log is JSON formatted
+                          if (counts.hasOwnProperty(logLevel)) {
+                              counts[logLevel]++;
+                          }
+                      }
+                  }
+              });
           },
           error: (error) => {
               console.error('Error querying InfluxDB:', error);
@@ -222,7 +235,7 @@ app.post("/log-level-count", async (req, res) => {
           },
           complete: () => {
               console.log('Query completed');
-              res.json(levelCounts); // Return the counts as JSON
+              res.json(counts); // Send the counts as response
           }
       });
   } catch (error) {
@@ -230,6 +243,7 @@ app.post("/log-level-count", async (req, res) => {
       res.status(500).json({ error: 'Error processing request' });
   }
 });
+
 
 
 app.listen(3000, function () {
