@@ -1,6 +1,6 @@
 "use client";
 
-import axios from "axios"
+import axios from "axios";
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,28 +14,22 @@ import {
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import LiveCameraFeed from "./LiveCameraFeed";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { img1Atom, img2Atom } from "@/state/atom";
+import { imgSelector } from "@/state/selector";
 
-const ScreenEnum = {
-  IMAGE_UPLOAD: "IMAGE_UPLOAD",
-  LIVE_CAPTURE: "LIVE_CAPTURE",
-  // Add more screens as needed
-};
+export enum ScreenEnum {
+  DOCUMENT_UPLOAD = "DOCUMENT_UPLOAD",
+  FACE_CAPTURE = "FACE_CAPTURE",
+  LIVE_FEED = "LIVE_FEED",
+}
 
-const ImageUpload = ({ setScreen }) => {
-  const [selectedImage, setSelectedImage] = useState(false);
+export const ImageUpload = ({ setScreen }) => {
+  const [selectedImage, setSelectedImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [error, setError] = useState("");
   const fileInputRef = useRef(null);
-
-  const [img1, setImg1] = useState(null);
-  const [img2, setImg2] = useState(null);
-
-
-  useEffect(()=>{
-    if(img1 && img2){
-      setSelectedImage(true)
-    }
-  },[])
+  const setImg1 = useSetRecoilState(img1Atom);
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
@@ -52,41 +46,11 @@ const ImageUpload = ({ setScreen }) => {
 
   const handleUpload = () => {
     if (selectedImage) {
-      console.log("Uploading image:", selectedImage);
-
-      console.log("File : ", selectedImage.name)
-
-      // verifyImage(selectedImage)
-
-
-
-
-      setScreen(ScreenEnum.LIVE_CAPTURE); // Switch to live capture screen after upload
+      console.log("Uploading document:", selectedImage);
+      setImg1(selectedImage);
+      setScreen(ScreenEnum.FACE_CAPTURE);
     } else {
-      setError("Please select an image before uploading.");
-    }
-  };
-
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Create form-data
-    const formData = new FormData();
-    formData.append('img1', img1);
-    formData.append('img2', img2);
-
-    try {
-      // Post request to your Flask backend
-      const response = await axios.post('http://127.0.0.1:5000/compare', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      console.log('Response:', response.data);
-    } catch (error) {
-      console.error('Error uploading images:', error);
+      setError("Please select a document image before proceeding.");
     }
   };
 
@@ -113,26 +77,145 @@ const ImageUpload = ({ setScreen }) => {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      <div className="flex ">
-        <form onSubmit={handleSubmit}>
-        <div className = "flex flex-col">
-          <label>Upload Image 1:</label>
-          <input type="file" onChange={(e)=> setImg1(e.target.files[0])} />
-       
-          <label>Upload a document:</label>
-          <input type="file" onChange={ (e)=>setImg2(e.target.files[0])} />
-        </div>
-        <Button onClick={handleSubmit}>
-          Upload Image
+      <div className="flex justify-between">
+        <Button
+          variant="secondary"
+          onClick={() => fileInputRef.current.click()}
+        >
+          Select Document
         </Button>
-      </form>
+        <Button onClick={handleUpload} disabled={!selectedImage}>
+          Upload Document
+        </Button>
       </div>
     </>
   );
 };
 
+const FaceCapture = ({ setScreen }) => {
+  const videoRef = useRef(null);
+  const [error, setError] = useState("");
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const { img1 } = useRecoilValue(imgSelector);
+  console.log("Img1 from recoil:", img1);
+
+  const handleSubmit = async (image2) => {
+    console.log("handleSubmit called");
+    setIsLoading(true);
+    setError("");
+    setResult(null);
+    
+    if (!img1) {
+      console.error("img1 is missing");
+      setError("Document image is missing. Please upload a document first.");
+      setIsLoading(false);
+      return;
+    }
+  
+    if (!image2) {
+      console.error("image2 is missing");
+      setError("Face image capture failed. Please try again.");
+      setIsLoading(false);
+      return;
+    }
+  
+    try {
+      const formData = new FormData();
+      formData.append('img1', image2, 'live_photo.jpg'); // Live photo
+      formData.append('img2', img1, 'document_photo.jpg'); // Document photo
+
+      const response = await axios.post(
+        "http://127.0.0.1:5000/compare",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      console.log("Response:", response.data);
+      setResult(response.data);
+    } catch (error) {
+      console.error("Error uploading images:", error);
+      setError("Failed to upload images. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    startCamera();
+    return () => stopCamera();
+  }, []);
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        setIsCameraActive(true);
+      }
+    } catch (err) {
+      setError("Failed to access the camera. Please ensure you have granted the necessary permissions.");
+      console.error("Error accessing the camera:", err);
+    }
+  };
+
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
+      setIsCameraActive(false);
+    }
+  };
+
+  const captureImage = () => {
+    console.log("captureImage called");
+    const canvas = document.createElement("canvas");
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    canvas.getContext("2d").drawImage(videoRef.current, 0, 0);
+    canvas.toBlob((blob) => {
+      console.log("Image blob created:", blob);
+      handleSubmit(blob);
+    }, "image/jpeg");
+  };
+
+  return (
+    <div className="flex flex-col">
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        className="w-full max-w-sm mb-4 rounded-lg"
+      />
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      {result && (
+        <Alert variant="success" className="mb-4">
+          <AlertDescription>
+            Match: {result.verified ? "Yes" : "No"}<br/>
+            Similarity: {result.distance}
+          </AlertDescription>
+        </Alert>
+      )}
+      <div className="flex justify-between">
+        <Button onClick={captureImage} disabled={!isCameraActive || isLoading}>
+          {isLoading ? "Processing..." : (isCameraActive ? "Capture Face Image" : "Starting Camera...")}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 export function DialogButton() {
-  const [screen, setScreen] = useState(ScreenEnum.IMAGE_UPLOAD);
+  const [screen, setScreen] = useState(ScreenEnum.DOCUMENT_UPLOAD);
+  const setImg1 = useSetRecoilState(img1Atom);
 
   return (
     <Dialog>
@@ -140,33 +223,47 @@ export function DialogButton() {
         <Button variant="outline">Upload</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
-        {
-          screen === ScreenEnum.IMAGE_UPLOAD ? (
-            <>
-              <DialogHeader>
-                <DialogTitle>Upload your ID</DialogTitle>
-                <DialogDescription>
-                  Please upload a clear photo of your government ID.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <ImageUpload setScreen={setScreen} />
-              </DialogFooter>
-            </>
-          ) : screen === ScreenEnum.LIVE_CAPTURE ? (
-            <>
-              <DialogHeader>
-                <DialogTitle>Live Image Capture</DialogTitle>
-                <DialogDescription>
-                  Matching your live image to the ID you uploaded.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <LiveCameraFeed setScreen={setScreen} />
-              </DialogFooter>
-            </>
-          ) : null /* Add more screens as needed */
-        }
+        {screen === ScreenEnum.DOCUMENT_UPLOAD && (
+          <>
+            <DialogHeader>
+              <DialogTitle>Upload your ID</DialogTitle>
+              <DialogDescription>
+                Please upload a clear photo of your government ID.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <ImageUpload setScreen={setScreen} />
+            </DialogFooter>
+          </>
+        )}
+        {screen === ScreenEnum.FACE_CAPTURE && (
+          <>
+            <DialogHeader>
+              <DialogTitle>Capture Face Image</DialogTitle>
+              <DialogDescription>
+                Please capture a clear image of your face.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <FaceCapture setScreen={setScreen} />
+            </DialogFooter>
+          </>
+        )}
+        {screen === ScreenEnum.LIVE_FEED && (
+          <>
+            <DialogHeader>
+              <DialogTitle>Live Image Capture</DialogTitle>
+              <DialogDescription>
+                Matching your live image to the ID you uploaded.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <LiveCameraFeed
+                setScreen={setScreen}
+              />
+            </DialogFooter>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
