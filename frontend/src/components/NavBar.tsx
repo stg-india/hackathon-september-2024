@@ -15,7 +15,9 @@ export function NavBar() {
         <Link href={"/upload"}>
           <Button variant="outline">Upload</Button>
         </Link>
-        <Button variant="outline">Dummy</Button>
+        <Link href={"/neighbour"}>
+          <Button variant="outline">Dummy</Button>
+        </Link>
         <div>
           <ModeToggle />
         </div>
