@@ -70,7 +70,7 @@ const RecentOrders = (props) => {
         
     ];
 
-    const row = props.data.filter(item=>item.Level==="ERROR");
+    const row = props?.data
     return (
         <React.Fragment>
             <Col xl={12}>
