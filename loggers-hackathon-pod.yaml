@@ -1,0 +1,235 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: logger-hackathon-pod
+  namespace: default
+  uid: b298ddda-7bee-4e24-832b-014d74b132f4
+  resourceVersion: '46975'
+  creationTimestamp: '2024-09-28T17:02:55Z'
+  labels:
+    app: logger-hackathon
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: >
+      {"apiVersion":"v1","kind":"Pod","metadata":{"annotations":{},"labels":{"app":"logger-hackathon"},"name":"logger-hackathon-pod","namespace":"default"},"spec":{"containers":[{"image":"tjain598/logger-hackathon:latest","name":"logger-hackathon","ports":[{"containerPort":8080,"name":"http"}],"volumeMounts":[{"mountPath":"/var/log/myapp","name":"log-volume"}]}],"restartPolicy":"Always","volumes":[{"emptyDir":{},"name":"log-volume"}]}}
+  managedFields:
+    - manager: kubectl-client-side-apply
+      operation: Update
+      apiVersion: v1
+      time: '2024-09-28T17:02:55Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:metadata:
+          f:annotations:
+            .: {}
+            f:kubectl.kubernetes.io/last-applied-configuration: {}
+          f:labels:
+            .: {}
+            f:app: {}
+        f:spec:
+          f:containers:
+            k:{"name":"logger-hackathon"}:
+              .: {}
+              f:image: {}
+              f:imagePullPolicy: {}
+              f:name: {}
+              f:ports:
+                .: {}
+                k:{"containerPort":8080,"protocol":"TCP"}:
+                  .: {}
+                  f:containerPort: {}
+                  f:name: {}
+                  f:protocol: {}
+              f:resources: {}
+              f:terminationMessagePath: {}
+              f:terminationMessagePolicy: {}
+              f:volumeMounts:
+                .: {}
+                k:{"mountPath":"/var/log/myapp"}:
+                  .: {}
+                  f:mountPath: {}
+                  f:name: {}
+          f:dnsPolicy: {}
+          f:enableServiceLinks: {}
+          f:restartPolicy: {}
+          f:schedulerName: {}
+          f:securityContext: {}
+          f:terminationGracePeriodSeconds: {}
+          f:volumes:
+            .: {}
+            k:{"name":"log-volume"}:
+              .: {}
+              f:emptyDir: {}
+              f:name: {}
+    - manager: kubelet
+      operation: Update
+      apiVersion: v1
+      time: '2024-09-29T03:05:33Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:status:
+          f:conditions:
+            k:{"type":"ContainersReady"}:
+              .: {}
+              f:lastProbeTime: {}
+              f:lastTransitionTime: {}
+              f:message: {}
+              f:reason: {}
+              f:status: {}
+              f:type: {}
+            k:{"type":"Initialized"}:
+              .: {}
+              f:lastProbeTime: {}
+              f:lastTransitionTime: {}
+              f:status: {}
+              f:type: {}
+            k:{"type":"PodReadyToStartContainers"}:
+              .: {}
+              f:lastProbeTime: {}
+              f:lastTransitionTime: {}
+              f:status: {}
+              f:type: {}
+            k:{"type":"Ready"}:
+              .: {}
+              f:lastProbeTime: {}
+              f:lastTransitionTime: {}
+              f:message: {}
+              f:reason: {}
+              f:status: {}
+              f:type: {}
+          f:containerStatuses: {}
+          f:hostIP: {}
+          f:hostIPs: {}
+          f:phase: {}
+          f:podIP: {}
+          f:podIPs:
+            .: {}
+            k:{"ip":"10.244.0.33"}:
+              .: {}
+              f:ip: {}
+          f:startTime: {}
+      subresource: status
+spec:
+  volumes:
+    - name: log-volume
+      emptyDir: {}
+    - name: kube-api-access-jscgg
+      projected:
+        sources:
+          - serviceAccountToken:
+              expirationSeconds: 3607
+              path: token
+          - configMap:
+              name: kube-root-ca.crt
+              items:
+                - key: ca.crt
+                  path: ca.crt
+          - downwardAPI:
+              items:
+                - path: namespace
+                  fieldRef:
+                    apiVersion: v1
+                    fieldPath: metadata.namespace
+        defaultMode: 420
+  containers:
+    - name: logger-hackathon
+      image: tjain598/logger-hackathon:latest
+      ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+      resources: {}
+      volumeMounts:
+        - name: log-volume
+          mountPath: /var/log/myapp
+        - name: kube-api-access-jscgg
+          readOnly: true
+          mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      imagePullPolicy: Always
+  restartPolicy: Always
+  terminationGracePeriodSeconds: 30
+  dnsPolicy: ClusterFirst
+  serviceAccountName: default
+  serviceAccount: default
+  nodeName: minikube
+  securityContext: {}
+  schedulerName: default-scheduler
+  tolerations:
+    - key: node.kubernetes.io/not-ready
+      operator: Exists
+      effect: NoExecute
+      tolerationSeconds: 300
+    - key: node.kubernetes.io/unreachable
+      operator: Exists
+      effect: NoExecute
+      tolerationSeconds: 300
+  priority: 0
+  enableServiceLinks: true
+  preemptionPolicy: PreemptLowerPriority
+status:
+  phase: Running
+  conditions:
+    - type: PodReadyToStartContainers
+      status: 'True'
+      lastProbeTime: null
+      lastTransitionTime: '2024-09-28T21:08:27Z'
+    - type: Initialized
+      status: 'True'
+      lastProbeTime: null
+      lastTransitionTime: '2024-09-28T17:02:55Z'
+    - type: Ready
+      status: 'False'
+      lastProbeTime: null
+      lastTransitionTime: '2024-09-29T03:05:18Z'
+      reason: ContainersNotReady
+      message: 'containers with unready status: [logger-hackathon]'
+    - type: ContainersReady
+      status: 'False'
+      lastProbeTime: null
+      lastTransitionTime: '2024-09-29T03:05:18Z'
+      reason: ContainersNotReady
+      message: 'containers with unready status: [logger-hackathon]'
+    - type: PodScheduled
+      status: 'True'
+      lastProbeTime: null
+      lastTransitionTime: '2024-09-28T17:02:55Z'
+  hostIP: 192.168.49.2
+  hostIPs:
+    - ip: 192.168.49.2
+  podIP: 10.244.0.33
+  podIPs:
+    - ip: 10.244.0.33
+  startTime: '2024-09-28T17:02:55Z'
+  containerStatuses:
+    - name: logger-hackathon
+      state:
+        waiting:
+          reason: CrashLoopBackOff
+          message: >-
+            back-off 5m0s restarting failed container=logger-hackathon
+            pod=logger-hackathon-pod_default(b298ddda-7bee-4e24-832b-014d74b132f4)
+      lastState:
+        terminated:
+          exitCode: 0
+          reason: Completed
+          startedAt: '2024-09-29T03:04:15Z'
+          finishedAt: '2024-09-29T03:05:17Z'
+          containerID: >-
+            docker://51b804297182a31fd72ef3b3a976471a1bac0ae8b542c00e1936337cdccb3c66
+      ready: false
+      restartCount: 70
+      image: aaersh/logger-hackathon:latest
+      imageID: >-
+        docker-pullable://aaersh/logger-hackathon@sha256:6974d289fe85f79469280956242bb630ab163be4a190b7d94e0f88efdf65d326
+      containerID: >-
+        docker://51b804297182a31fd72ef3b3a976471a1bac0ae8b542c00e1936337cdccb3c66
+      started: false
+      volumeMounts:
+        - name: log-volume
+          mountPath: /var/log/myapp
+        - name: kube-api-access-jscgg
+          mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+          readOnly: true
+          recursiveReadOnly: Disabled
+  qosClass: BestEffort
