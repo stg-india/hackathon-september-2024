@@ -16,7 +16,10 @@ export function NavBar() {
           <Button variant="outline">Upload</Button>
         </Link>
         <Link href={"/neighbour"}>
-          <Button variant="outline">Dummy</Button>
+          <Button variant="outline">ApproximateNN</Button>
+        </Link>
+        <Link href={"/video"}>
+          <Button variant="outline">Liveness Detection</Button>
         </Link>
         <div>
           <ModeToggle />

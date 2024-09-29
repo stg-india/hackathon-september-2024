@@ -10,7 +10,7 @@ export default function Neighbour() {
   const [uploadStatus, setUploadStatus] = useState("");
   const { toast } = useToast();
 
-  const handleFileChange = (event) => {
+  const handleFileChange = async (event) => {
     setSelectedFile(event.target.files[0]);
   };
 
@@ -18,7 +18,7 @@ export default function Neighbour() {
     if (!selectedFile) {
       toast({
         variant: "destructive",
-        description: "Please select a file ",
+        description: "Please select a file",
       });
       return;
     }
@@ -41,6 +41,43 @@ export default function Neighbour() {
         description: "your image will now do his thing",
       });
       console.log(response.data);
+
+
+      if(response.data){
+        console.log("Run ANN here")
+        const embeddings = response.data.embedding;
+        const k =5;
+
+        const data = {
+          embedding : Array.from(embeddings),
+          k : 5
+        }
+
+        const jsonData = JSON.stringify(data);
+
+      
+
+        console.log("Sending request to find neighbours with formdata :", jsonData);
+
+        const nearestNeighboursResponse = await  axios.post('http://127.0.0.1:5000/find_neighbors', data, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        if(nearestNeighboursResponse.data){
+          console.log(nearestNeighboursResponse.data);
+          toast({
+            title: "Nearest Neighbours found!",
+            description: "Nearest Neighbours found",
+          });
+        }
+        else{
+          toast({
+            title: "Nearest Neighbours not found!",
+            description: "User doesn't exist in our database",
+          });
+        }
+      }
     } catch (error) {
       setUploadStatus("Upload failed. Please try again.");
       toast({
@@ -59,6 +96,7 @@ export default function Neighbour() {
           <Input type="file" onChange={handleFileChange} className="mb-6" />
         </div>
         <Button onClick={handleUpload}>Upload Image</Button>
+        <div className = "text-gray-500 my-5 text-lg"> *Checking the second image against a large database to find top 5 similar images with respective similarity scores.</div>
         <div className=" m-72  ">
           <Globe className=" top-48" />
         </div>
