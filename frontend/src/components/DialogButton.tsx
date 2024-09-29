@@ -3,6 +3,8 @@
 import axios from "axios";
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+
 import {
   Dialog,
   DialogContent,
@@ -107,25 +109,27 @@ const FaceCapture = ({ setScreen }) => {
     setIsLoading(true);
     setError("");
     setResult(null);
-    
+
     if (!img1) {
       console.error("img1 is missing");
       setError("Document image is missing. Please upload a document first.");
       setIsLoading(false);
       return;
     }
-  
+
     if (!image2) {
       console.error("image2 is missing");
       setError("Face image capture failed. Please try again.");
       setIsLoading(false);
       return;
     }
-  
+
     try {
       const formData = new FormData();
+
       formData.append('img1', img1, 'live_photo.jpg'); // Live photo
       formData.append('img2', image2, 'document_photo.jpg'); // Document photo
+
 
       const response = await axios.post(
         "http://127.0.0.1:5000/compare",
@@ -159,7 +163,9 @@ const FaceCapture = ({ setScreen }) => {
         setIsCameraActive(true);
       }
     } catch (err) {
-      setError("Failed to access the camera. Please ensure you have granted the necessary permissions.");
+      setError(
+        "Failed to access the camera. Please ensure you have granted the necessary permissions."
+      );
       console.error("Error accessing the camera:", err);
     }
   };
@@ -199,15 +205,21 @@ const FaceCapture = ({ setScreen }) => {
       {result && (
         <Alert variant="success" className="mb-4">
           <AlertDescription>
+
             Match: {result.verified ? "Yes" : "No"}<br/>
             Distance: {result.distance}<br/>
             Lower the distance, better the match.
+
           </AlertDescription>
         </Alert>
       )}
       <div className="flex justify-between">
         <Button onClick={captureImage} disabled={!isCameraActive || isLoading}>
-          {isLoading ? "Processing..." : (isCameraActive ? "Capture Face Image" : "Starting Camera...")}
+          {isLoading
+            ? "Processing..."
+            : isCameraActive
+            ? "Capture Face Image"
+            : "Starting Camera..."}
         </Button>
       </div>
     </div>
@@ -227,6 +239,7 @@ export function DialogButton() {
         {screen === ScreenEnum.DOCUMENT_UPLOAD && (
           <>
             <DialogHeader>
+              <Progress value={0} />
               <DialogTitle>Upload your ID</DialogTitle>
               <DialogDescription>
                 Please upload a clear photo of your government ID.
@@ -240,6 +253,7 @@ export function DialogButton() {
         {screen === ScreenEnum.FACE_CAPTURE && (
           <>
             <DialogHeader>
+              <Progress value={33} />
               <DialogTitle>Capture Face Image</DialogTitle>
               <DialogDescription>
                 Please capture a clear image of your face.
@@ -253,15 +267,14 @@ export function DialogButton() {
         {screen === ScreenEnum.LIVE_FEED && (
           <>
             <DialogHeader>
+              <Progress value={66} />
               <DialogTitle>Live Image Capture</DialogTitle>
               <DialogDescription>
                 Matching your live image to the ID you uploaded.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <LiveCameraFeed
-                setScreen={setScreen}
-              />
+              <LiveCameraFeed setScreen={setScreen} />
             </DialogFooter>
           </>
         )}
