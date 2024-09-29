@@ -1,0 +1,16 @@
+# Virtual environments
+Backend/venv/
+Backend/virtualEnv/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore specific folders
+Backend/path/
+Backend/to/
+Backend/uploads/
+Backend/images/
+Backend/logs/
